@@ -8,6 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.9"
 jsbeautifier = "^1.15.1"
+ruff = "^0.4.9"
 
 
 [build-system]
