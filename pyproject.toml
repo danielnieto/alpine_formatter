@@ -9,6 +9,7 @@ readme = "README.md"
 python = "^3.9"
 jsbeautifier = "^1.15.1"
 ruff = "^0.4.9"
+pre-commit = "^3.7.1"
 
 
 [build-system]
