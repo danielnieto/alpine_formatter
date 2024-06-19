@@ -2,8 +2,51 @@ import re
 from re import Match
 from jsbeautifier import beautify
 
+MODIFIERS = r"(\.[a-zA-Z0-9.-]+)*"
+X_DATA = r"x-data"
+X_INIT = r"x-init"
+X_SHOW = rf"x-show{MODIFIERS}"
+X_BIND = r"(x-bind)?:[a-zA-Z0-9-]+"
+X_ON = rf"(x-on:|@)[a-zA-Z0-9-]+{MODIFIERS}"
+X_TEXT = r"x-text"
+X_HTML = r"x-html"
+X_MODEL = rf"x-model{MODIFIERS}"
+X_MODELABLE = r"x-modelable"
+X_FOR = r"x-for"
+X_TRANSITION = rf"x-transition(:[a-zA-Z0-9-]+)*{MODIFIERS}"
+X_EFFECT = r"x-effect"
+X_REF = r"x-ref"
+X_TELEPORT = r"x-teleport"
+X_IF = r"x-if"
+X_ID = r"x-id"
+
+# ignoring x-ignore and x-cloak since these directives cannot have values
+ALL_DIRECTIVES = [
+    X_DATA,
+    X_INIT,
+    X_SHOW,
+    X_BIND,
+    X_ON,
+    X_TEXT,
+    X_HTML,
+    X_MODEL,
+    X_MODELABLE,
+    X_FOR,
+    X_TRANSITION,
+    X_EFFECT,
+    X_REF,
+    X_TELEPORT,
+    X_IF,
+    X_ID,
+]
+
+DIRECTIVE = rf"(?P<directive>{'|'.join(ALL_DIRECTIVES)})"
+OPENING_QUOTE = r"(?P<quote>['\"]))"
+CODE = r"(?P<code>.*?)(?<!\\)"
+CLOSING_QUOTE = r"(?P=quote)"
+
 RE_PATTERN = re.compile(
-    r"((?P<directive>x-data)\s*=\s*(?P<quote>['\"]))(?P<code>.*?)(?<!\\)(?P=quote)",
+    rf"\s+({DIRECTIVE}\s*=\s*{OPENING_QUOTE}{CODE}{CLOSING_QUOTE}",
     flags=re.DOTALL | re.IGNORECASE,
 )
 
