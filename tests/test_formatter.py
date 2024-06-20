@@ -1,5 +1,6 @@
 from unittest import TestCase
-from alpine_formatter.formatter import RE_PATTERN
+from alpine_formatter.formatter import RE_PATTERN, get_indentation_level
+import re
 
 
 class TestPattern(TestCase):
@@ -512,3 +513,35 @@ class TestXId(TestCase):
         """
         matches = list(RE_PATTERN.finditer(content))
         self.assertEqual(len(matches), 0)
+
+
+class TestGetIndentationLevel(TestCase):
+    def test_no_indentation(self):
+        content = "foo"
+        match = re.search(r"foo", content)
+        self.assertIsNotNone(match)
+        self.assertEqual(get_indentation_level(match), 0)
+
+    def test_single_line_indentation(self):
+        content = "\n        foo"
+        match = re.search(r"foo", content)
+        self.assertIsNotNone(match)
+        self.assertEqual(get_indentation_level(match), 8)
+
+    def test_multiline_indentation(self):
+        content = "foo\n    bar"
+        match = re.search(r"bar", content)
+        self.assertIsNotNone(match)
+        self.assertEqual(get_indentation_level(match), 4)
+
+    def test_indentation_after_newline(self):
+        content = "foo\n\n    bar"
+        match = re.search(r"bar", content)
+        self.assertIsNotNone(match)
+        self.assertEqual(get_indentation_level(match), 4)
+
+    def test_no_newline_before_match(self):
+        content = "foo bar"
+        match = re.search(r"bar", content)
+        self.assertIsNotNone(match)
+        self.assertEqual(get_indentation_level(match), 0)
