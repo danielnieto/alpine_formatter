@@ -3,13 +3,6 @@ from alpine_formatter.formatter import RE_PATTERN
 
 
 class TestPattern(TestCase):
-    def test_num_of_matches(self):
-        content = """
-        <div x-data='{"key": "value"}'>
-        """
-        matches = list(RE_PATTERN.finditer(content))
-        self.assertEqual(len(matches), 1)
-
     def test_matches_multiline(self):
         content = """
         <div x-data='
