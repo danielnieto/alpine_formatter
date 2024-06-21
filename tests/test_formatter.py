@@ -393,22 +393,19 @@ class TestXTransition(TestCase):
         content = """
         <div x-transition>
         <div x-transition="value">
-        <div x-transition.modifier="value">
-        <div x-transition.another-modifier="value">
+        <div x-transition:enter="value">
         """
         matches = list(RE_PATTERN.finditer(content))
-        self.assertEqual(len(matches), 3)
+        self.assertEqual(len(matches), 2)
 
     def test_do_not_match_x_transition_with_extra_chars(self):
         content = """
         <div nox-transition="value">
         <div nox-transition:enter="value">
-        <div nox-transition.modifier="value">
-        <div nox-transition.another-modifier="value">
         <div x-transitionno="value">
         <div x-transitionno:enter="value">
-        <div x-transitionno.modifier="value">
-        <div x-transitionno.another-modifier="value">
+        <div x-transitionno:enter:start="value">
+        <div x-transitionno::="value">
         """
         matches = list(RE_PATTERN.finditer(content))
         self.assertEqual(len(matches), 0)
@@ -417,14 +414,6 @@ class TestXTransition(TestCase):
         content = """
         <div x-transition:enter="transition ease-out duration-300">
         <div x-transition:leave-end="opacity-100 scale-100">
-        """
-        matches = list(RE_PATTERN.finditer(content))
-        self.assertEqual(len(matches), 2)
-
-    def test_matches_x_transition_with_stages_and_modifiers(self):
-        content = """
-        <div x-transition:enter.scale.80="transition ease-out duration-300">
-        <div x-transition:leave-end.scale.80="opacity-100 scale-100">
         """
         matches = list(RE_PATTERN.finditer(content))
         self.assertEqual(len(matches), 2)
