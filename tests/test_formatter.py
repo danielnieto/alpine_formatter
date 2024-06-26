@@ -1,5 +1,5 @@
 from unittest import TestCase
-from alpine_formatter.formatter import RE_PATTERN, get_indentation_level
+from alpine_formatter.formatter import RE_PATTERN, get_indentation_level, format_alpine
 import re
 
 
@@ -546,3 +546,158 @@ class TestGetIndentationLevel(TestCase):
         match = re.search(RE_PATTERN, content)
         self.assertIsNotNone(match)
         self.assertEqual(get_indentation_level(match), 18)
+
+
+class TestFormatAlpine(TestCase):
+    def test_single_line_format(self):
+        content = """
+        <div>
+            <div   :class="hide&&'hidden' "   style="border:red">
+                foo
+            </div
+        </div>
+        """
+        expected_result = """
+        <div>
+            <div   :class="hide && 'hidden'"   style="border:red">
+                foo
+            </div
+        </div>
+        """
+        self.assertEqual(format_alpine(content), expected_result)
+
+    def test_multi_line_format(self):
+        content = """
+        <div>
+            <div x-data='{"hide":false}' :class="hide && 'hidden'">
+                foo
+            </div
+        </div>
+        """
+        expected_result = """
+        <div>
+            <div x-data='
+                 {
+                     "hide": false
+                 }
+                 ' :class="hide && 'hidden'">
+                foo
+            </div
+        </div>
+        """
+        self.assertEqual(format_alpine(content), expected_result)
+
+    def test_real_example(self):
+        content = """
+        <div
+            {# djlint:off #}
+            x-data ="{
+             tags: [],
+              newTag: '',
+             pattern: /[^A-Za-z0-9]/g,
+              init: function() { const initialValue = $refs.input.value;
+                if (!initialValue) { return; }
+                initialValue.split(',').forEach(tag => this.tags.push(tag.trim()));
+              },
+          addTag : (event) =>{
+                if (this.tags.indexOf(this.newTag) > -1 || !this.newTag) {
+                  return;
+                 }
+                this.tags.push(this.newTag);
+                 this.newTag = '';
+              },
+              removeTag:function(tag){
+                this.tags.splice(
+                    this.tags.indexOf(tag), 1);
+              },
+              preventInvalid:function(event) {
+                if (this.pattern.test(event.key) && event.key.length === 1) {
+                  event.preventDefault();
+                }
+              }, filterInput: function(event) {
+                this.newTag = event.target.value.replace(this.pattern, '');
+                }}"   {# djlint:on #} >
+            <input {% include "django/forms/widgets/attrs.html" %}
+                    x-model="  newTag "
+                   @keydown.enter.prevent="addTag "
+                   @keydown=" preventInvalid"
+                   @input="filterInput" placeholder="Add tag...">
+        </input>
+        <input     x-ref="input"
+               x-model="tags"
+               type="hidden"
+               name="{{ widget.name }}"
+               {% if widget.value != None %}value="{{ widget.value|stringformat:'s' }}"{% endif %}>
+        </input>
+        <div class="flex flex-wrap gap-1 my-2">
+            <template x-for =" tag  in tags">
+                <div class="badge bg-gray-200">
+                    <span class="first-letter:uppercase" x-text="tag"></span>
+                    <svg @click="removeTag(tag )"
+                         xmlns="http://www.w3.org/2000/svg"
+                    </svg>
+                </div>
+            </template>
+        </div>
+        """
+        expected_result = """
+        <div
+            {# djlint:off #}
+            x-data="
+            {
+                tags: [],
+                newTag: '',
+                pattern: /[^A-Za-z0-9]/g,
+                init: function() {
+                    const initialValue = $refs.input.value;
+                    if (!initialValue) {
+                        return;
+                    }
+                    initialValue.split(',').forEach(tag => this.tags.push(tag.trim()));
+                },
+                addTag: (event) => {
+                    if (this.tags.indexOf(this.newTag) > -1 || !this.newTag) {
+                        return;
+                    }
+                    this.tags.push(this.newTag);
+                    this.newTag = '';
+                },
+                removeTag: function(tag) {
+                    this.tags.splice(
+                        this.tags.indexOf(tag), 1);
+                },
+                preventInvalid: function(event) {
+                    if (this.pattern.test(event.key) && event.key.length === 1) {
+                        event.preventDefault();
+                    }
+                },
+                filterInput: function(event) {
+                    this.newTag = event.target.value.replace(this.pattern, '');
+                }
+            }
+            "   {# djlint:on #} >
+            <input {% include "django/forms/widgets/attrs.html" %}
+                    x-model="newTag"
+                   @keydown.enter.prevent="addTag"
+                   @keydown="preventInvalid"
+                   @input="filterInput" placeholder="Add tag...">
+        </input>
+        <input     x-ref="input"
+               x-model="tags"
+               type="hidden"
+               name="{{ widget.name }}"
+               {% if widget.value != None %}value="{{ widget.value|stringformat:'s' }}"{% endif %}>
+        </input>
+        <div class="flex flex-wrap gap-1 my-2">
+            <template x-for="tag in tags">
+                <div class="badge bg-gray-200">
+                    <span class="first-letter:uppercase" x-text="tag"></span>
+                    <svg @click="removeTag(tag)"
+                         xmlns="http://www.w3.org/2000/svg"
+                    </svg>
+                </div>
+            </template>
+        </div>
+        """
+        self.maxDiff = None
+        self.assertEqual(format_alpine(content), expected_result)
