@@ -46,7 +46,7 @@ CODE = r"(?P<code>.*?)(?<!\\)"
 CLOSING_QUOTE = r"(?P=quote)"
 
 RE_PATTERN = re.compile(
-    rf"\s+({DIRECTIVE}\s*=\s*{OPENING_QUOTE}{CODE}{CLOSING_QUOTE}",
+    rf"(?<=\s)({DIRECTIVE}\s*=\s*{OPENING_QUOTE}{CODE}{CLOSING_QUOTE}",
     flags=re.DOTALL | re.IGNORECASE,
 )
 

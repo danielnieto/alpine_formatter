@@ -534,3 +534,15 @@ class TestGetIndentationLevel(TestCase):
         match = re.search(r"bar", content)
         self.assertIsNotNone(match)
         self.assertEqual(get_indentation_level(match), 0)
+
+    def test_alpine_pattern_indentation(self):
+        content = """
+        <div>
+            <div  x-data='{"hide":false}'>
+                foo
+            </div
+        </div>
+        """
+        match = re.search(RE_PATTERN, content)
+        self.assertIsNotNone(match)
+        self.assertEqual(get_indentation_level(match), 18)
