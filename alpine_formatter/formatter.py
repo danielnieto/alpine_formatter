@@ -13,14 +13,13 @@ X_HTML = r"x-html"
 X_MODEL = rf"x-model{MODIFIERS}"
 X_MODELABLE = r"x-modelable"
 X_FOR = r"x-for"
-X_TRANSITION = r"x-transition(:[a-zA-Z0-9-]+)*"
 X_EFFECT = r"x-effect"
 X_REF = r"x-ref"
-X_TELEPORT = r"x-teleport"
 X_IF = r"x-if"
 X_ID = r"x-id"
 
-# ignoring x-ignore and x-cloak since these directives cannot have values
+# ignore x-ignore and x-cloak since these directives cannot have values
+# ignore x-transition and x-teleport since these directives have CSS as values
 ALL_DIRECTIVES = [
     X_DATA,
     X_INIT,
@@ -32,10 +31,8 @@ ALL_DIRECTIVES = [
     X_MODEL,
     X_MODELABLE,
     X_FOR,
-    X_TRANSITION,
     X_EFFECT,
     X_REF,
-    X_TELEPORT,
     X_IF,
     X_ID,
 ]

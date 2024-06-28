@@ -388,37 +388,6 @@ class TestXFor(TestCase):
         self.assertEqual(len(matches), 0)
 
 
-class TestXTransition(TestCase):
-    def test_matches_x_transition_only_when_has_value(self):
-        content = """
-        <div x-transition>
-        <div x-transition="value">
-        <div x-transition:enter="value">
-        """
-        matches = list(RE_PATTERN.finditer(content))
-        self.assertEqual(len(matches), 2)
-
-    def test_do_not_match_x_transition_with_extra_chars(self):
-        content = """
-        <div nox-transition="value">
-        <div nox-transition:enter="value">
-        <div x-transitionno="value">
-        <div x-transitionno:enter="value">
-        <div x-transitionno:enter:start="value">
-        <div x-transitionno::="value">
-        """
-        matches = list(RE_PATTERN.finditer(content))
-        self.assertEqual(len(matches), 0)
-
-    def test_matches_x_transition_with_stages(self):
-        content = """
-        <div x-transition:enter="transition ease-out duration-300">
-        <div x-transition:leave-end="opacity-100 scale-100">
-        """
-        matches = list(RE_PATTERN.finditer(content))
-        self.assertEqual(len(matches), 2)
-
-
 class TestXEffect(TestCase):
     def test_matches_x_effect(self):
         content = """
@@ -448,23 +417,6 @@ class TestXRef(TestCase):
         content = """
         <div nox-ref="text">
         <div x-refno="text">
-        """
-        matches = list(RE_PATTERN.finditer(content))
-        self.assertEqual(len(matches), 0)
-
-
-class TestXTeleport(TestCase):
-    def test_matches_x_teleport(self):
-        content = """
-        <div x-teleport="#some-id">
-        """
-        matches = list(RE_PATTERN.finditer(content))
-        self.assertEqual(len(matches), 1)
-
-    def test_do_not_match_x_teleport_with_extra_chars(self):
-        content = """
-        <div nox-teleport="#some-id">
-        <div x-teleportno="#some-id">
         """
         matches = list(RE_PATTERN.finditer(content))
         self.assertEqual(len(matches), 0)
