@@ -51,6 +51,7 @@ class TestCollectFiles(TestCase):
 
     @patch("alpine_formatter.cli.Path.exists", return_value=True)
     @patch("alpine_formatter.cli.Path.is_file", return_value=True)
+    @patch("alpine_formatter.cli.load_gitignore", return_value=None)
     @patch("alpine_formatter.cli.should_process", return_value=True)
     def test_collect_files_single_file(self, *args):
         path = Path("/some/file.html")
@@ -93,11 +94,12 @@ class TestCollectFiles(TestCase):
 
 
 class TestLoadGitignore(TestCase):
+    @patch("alpine_formatter.cli.Path.is_dir", return_value=True)
     @patch("alpine_formatter.cli.Path.exists", return_value=True)
     @patch("alpine_formatter.cli.open", new_callable=mock_open, read_data="*.jsx")
     @patch("alpine_formatter.cli.Path.resolve")
-    def test_load_gitignore_in_current_directory(
-        self, mock_resolve, mock_open, mock_exists
+    def test_load_gitignore_in_current_directory_when_path_is_directory(
+        self, mock_resolve, mock_open, mock_exists, *args
     ):
         path = Path("/some/directory")
         mock_resolve.return_value = path
@@ -108,11 +110,12 @@ class TestLoadGitignore(TestCase):
         self.assertTrue(gitignore.match_file("file.jsx"))
         self.assertFalse(gitignore.match_file("file.html"))
 
+    @patch("alpine_formatter.cli.Path.is_dir", return_value=True)
     @patch("alpine_formatter.cli.Path.exists", side_effect=[False, False, True])
     @patch("alpine_formatter.cli.open", new_callable=mock_open, read_data="*.jsx")
     @patch("alpine_formatter.cli.Path.resolve")
-    def test_load_gitignore_in_parent_directory(
-        self, mock_resolve, mock_open, mock_exists
+    def test_load_gitignore_in_parent_directory_when_path_is_directory(
+        self, mock_resolve, mock_open, mock_exists, *args
     ):
         path = Path("/some/directory/subdir")
         mock_resolve.return_value = path
@@ -123,11 +126,60 @@ class TestLoadGitignore(TestCase):
         self.assertTrue(gitignore.match_file("file.jsx"))
         self.assertFalse(gitignore.match_file("file.html"))
 
+    @patch("alpine_formatter.cli.Path.is_dir", return_value=True)
     @patch("alpine_formatter.cli.Path.exists", return_value=False)
     @patch("alpine_formatter.cli.open", new_callable=mock_open, read_data="*.jsx")
     @patch("alpine_formatter.cli.Path.resolve")
-    def test_load_gitignore_not_found(self, mock_resolve, mock_open, mock_exists):
+    def test_load_gitignore_not_found_when_path_is_directory(
+        self, mock_resolve, mock_open, mock_exists, *args
+    ):
         path = Path("/some/directory")
+        mock_resolve.return_value = path
+        gitignore = load_gitignore(path)
+        self.assertIsNone(gitignore)
+        mock_open.assert_not_called()
+        self.assertEqual(mock_exists.call_count, 3)
+
+    @patch("alpine_formatter.cli.Path.is_dir", return_value=False)
+    @patch("alpine_formatter.cli.Path.exists", return_value=True)
+    @patch("alpine_formatter.cli.open", new_callable=mock_open, read_data="*.jsx")
+    @patch("alpine_formatter.cli.Path.resolve")
+    def test_load_gitignore_in_current_directory_when_path_is_file(
+        self, mock_resolve, mock_open, mock_exists, *args
+    ):
+        path = Path("/some/directory/file.html")
+        mock_resolve.return_value = path
+        gitignore = load_gitignore(path)
+        self.assertIsNotNone(gitignore)
+        mock_open.assert_called_once_with(Path("/some/directory/.gitignore"))
+        self.assertEqual(mock_exists.call_count, 1)
+        self.assertTrue(gitignore.match_file("file.jsx"))
+        self.assertFalse(gitignore.match_file("file.html"))
+
+    @patch("alpine_formatter.cli.Path.is_dir", return_value=False)
+    @patch("alpine_formatter.cli.Path.exists", side_effect=[False, False, True])
+    @patch("alpine_formatter.cli.open", new_callable=mock_open, read_data="*.jsx")
+    @patch("alpine_formatter.cli.Path.resolve")
+    def test_load_gitignore_in_parent_directory_when_path_is_file(
+        self, mock_resolve, mock_open, mock_exists, *args
+    ):
+        path = Path("/some/directory/subdir/file.html")
+        mock_resolve.return_value = path
+        gitignore = load_gitignore(path)
+        self.assertIsNotNone(gitignore)
+        mock_open.assert_called_once_with(Path("/some/.gitignore"))
+        self.assertEqual(mock_exists.call_count, 3)
+        self.assertTrue(gitignore.match_file("file.jsx"))
+        self.assertFalse(gitignore.match_file("file.html"))
+
+    @patch("alpine_formatter.cli.Path.is_dir", return_value=False)
+    @patch("alpine_formatter.cli.Path.exists", return_value=False)
+    @patch("alpine_formatter.cli.open", new_callable=mock_open, read_data="*.jsx")
+    @patch("alpine_formatter.cli.Path.resolve")
+    def test_load_gitignore_not_found_when_path_is_file(
+        self, mock_resolve, mock_open, mock_exists, *args
+    ):
+        path = Path("/some/directory/file.html")
         mock_resolve.return_value = path
         gitignore = load_gitignore(path)
         self.assertIsNone(gitignore)

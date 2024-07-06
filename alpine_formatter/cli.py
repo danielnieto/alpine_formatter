@@ -11,10 +11,14 @@ SUPPORTED_EXTENSIONS = {".html", ".jinja"}
 
 def load_gitignore(path: Path) -> Optional[GitIgnoreSpec]:
     """
-    Load and parse .gitignore file if it exists in the given directory or any of it's parents
+    Load and parse .gitignore file if it exists in the given directory or any of its parents
     """
     absolute_path = path.resolve()
-    dirs_to_look = [absolute_path] + list(absolute_path.parents)
+    dirs_to_look = list(absolute_path.parents)
+
+    # if the path is a dir, include it in the list of dirs to search
+    if absolute_path.is_dir():
+        dirs_to_look = [absolute_path] + dirs_to_look
 
     for directory in dirs_to_look:
         gitignore_path = directory / ".gitignore"
@@ -44,16 +48,18 @@ def collect_files(path: Path, use_gitignore=True) -> List[Path]:
     if not path.exists():
         raise InvalidPathError(f"{path} does not exist.")
 
+    gitignore = load_gitignore(path) if use_gitignore else None
     collected = []
 
     if path.is_file():
-        if should_process(path):
+        if should_process(path, gitignore):
             collected.append(path)
     elif path.is_dir():
-        gitignore = load_gitignore(path) if use_gitignore else None
         for file in path.rglob("*"):
             if should_process(file, gitignore):
                 collected.append(file)
+    else:
+        raise InvalidPathError(f"{path} is invalid.")
 
     return collected
 
