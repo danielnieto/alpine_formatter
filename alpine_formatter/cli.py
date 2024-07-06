@@ -35,9 +35,7 @@ def should_process(file: Path, gitignore: Optional[GitIgnoreSpec] = None) -> boo
     Determine if a file should be processed based on its extension and .gitignore rules.
     """
     is_supported_extension = file.suffix in SUPPORTED_EXTENSIONS
-    is_git_ignored = False
-    if gitignore:
-        is_git_ignored = gitignore.match_file(file)
+    is_git_ignored = gitignore.match_file(file) if gitignore else False
     return is_supported_extension and not is_git_ignored
 
 
